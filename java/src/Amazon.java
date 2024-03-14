@@ -68,6 +68,56 @@ public class Amazon {
       } // end catch
    }// end Amazon
 
+   // Check if the input string is an integer
+   public static boolean isInteger(String s) {
+      try {
+         Integer.parseInt(s);
+      } catch (NumberFormatException e) {
+         return false;
+      } catch (NullPointerException e) {
+         return false;
+      }
+      return true;
+   }
+
+   // Check if the input string is a double
+   public static boolean isDouble(String s) {
+      try {
+         Double.parseDouble(s);
+      } catch (NumberFormatException e) {
+         return false;
+      } catch (NullPointerException e) {
+         return false;
+      }
+      return true;
+   }
+
+   // Get store ID from the user
+   public static String getStoreID(Amazon esql) {
+      String store_id = null;
+      while (true) {
+         System.out.print("\tEnter store id: ");
+         try {
+            store_id = in.readLine();
+            if (!isInteger(store_id)) {
+               System.out.println("Invalid input. Try again!");
+               continue;
+            }
+            String query = String.format("SELECT * FROM Store WHERE storeid = %s", store_id);
+            if (esql.executeQuery(query) == 0) {
+               System.out.println("Store does not exist. Try again!");
+               continue;
+            }
+            break;
+         } catch (Exception e) {
+            System.err.println(e.getMessage());
+            continue;
+         }
+      }
+
+      return store_id;
+   }
+
    // Method to calculate euclidean distance between two latitude, longitude pairs.
    public double calculateDistance(double lat1, double long1, double lat2, double long2) {
       double t1 = (lat1 - lat2) * (lat1 - lat2);
@@ -505,7 +555,64 @@ public class Amazon {
    }
 
    public static void updateProduct(Amazon esql) {
+      try {
+         // Get Store ID from the user
+         String store_id = getStoreID(esql);
 
+         // Check if the user is the manager of the store
+         String storeID_query = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
+         List<List<String>> result = esql.executeQueryAndReturnResult(storeID_query);
+         if (!result.get(0).get(0).equals(esql.currentUser)) {
+            System.out.println("You are not the manager of this store. Try again!");
+            return;
+         }
+
+         // Get product name from the user
+         System.out.print("\tEnter product name: ");
+         String product_name = in.readLine();
+
+         // Check if the product exists in the store
+         String product_query = String.format("SELECT * FROM Product WHERE storeid = %s AND productname = '%s'",
+               store_id,
+               product_name);
+         if (esql.executeQuery(product_query) == 0) {
+            System.out.println("Product does not exist in the store.");
+            return;
+         }
+
+         // Get new price
+         System.out.print("\tEnter new price: ");
+         String new_price = in.readLine();
+         if (!isDouble(new_price)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         // Get new quantity
+         System.out.print("\tEnter new quantity: ");
+         String new_quantity = in.readLine();
+         if (!isInteger(new_quantity)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         // Update the product
+         String update_query = String.format(
+               "UPDATE Product SET priceperunit = %s, numberofunits = %s WHERE storeid = %s AND productname = '%s'",
+               new_price,
+               new_quantity, store_id, product_name);
+         esql.executeUpdate(update_query);
+         System.out.println("Product successfully updated!");
+
+         // Insert into ProductUpdate
+         String insert_query = String.format(
+               "INSERT INTO ProductUpdates (managerID, storeid, productname, updatedOn) VALUES (%s, %s, '%s', CURRENT_DATE)",
+               esql.currentUser, store_id, product_name);
+         esql.executeUpdate(insert_query);
+
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void viewRecentUpdates(Amazon esql) {
