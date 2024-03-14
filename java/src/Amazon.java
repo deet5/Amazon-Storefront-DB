@@ -364,19 +364,19 @@ public class Amazon {
                   System.out.println("9. Log out");
                   switch (readChoice()) {
                      case 1:
-                        updateProduct(esql);
+
                         break;
                      case 2:
-                        viewRecentUpdates(esql);
+
                         break;
                      case 3:
-                        viewPopularProducts(esql);
+
                         break;
                      case 4:
-                        viewPopularCustomers(esql);
+
                         break;
                      case 5:
-                        placeProductSupplyRequests(esql);
+
                         break;
 
                      case 9:
