@@ -604,7 +604,7 @@ public class Amazon {
          esql.executeUpdate(update_query);
          System.out.println("Product successfully updated!");
 
-         // Insert into ProductUpdate
+         // Insert into ProductUpdates
          String insert_query = String.format(
                "INSERT INTO ProductUpdates (managerID, storeid, productname, updatedOn) VALUES (%s, %s, '%s', CURRENT_DATE)",
                esql.currentUser, store_id, product_name);
@@ -616,6 +616,24 @@ public class Amazon {
    }
 
    public static void viewRecentUpdates(Amazon esql) {
+      try {
+         // Get Store ID from the user
+         String store_id = getStoreID(esql);
+
+         String valid_manager = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
+         List<List<String>> result = esql.executeQueryAndReturnResult(valid_manager);
+         if (!result.get(0).get(0).equals(esql.currentUser)) {
+            System.out.println("You are not the manager of this store. Try again!");
+            return;
+         }
+
+         String query = String.format(
+               "SELECT * FROM ProductUpdates WHERE storeid = %s ORDER BY updatedOn DESC LIMIT 5",
+               store_id);
+         esql.executeQueryAndPrintResult(query);
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void viewPopularProducts(Amazon esql) {
