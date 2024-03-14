@@ -34,6 +34,8 @@ public class Amazon {
    // reference to physical database connection.
    private Connection _connection = null;
 
+   // Keep track of the current user id
+   private String currentUser = null;
    // handling the keyboard inputs through a BufferedReader
    // This variable can be global for convenience.
    static BufferedReader in = new BufferedReader(
@@ -474,8 +476,11 @@ public class Amazon {
 
          String query = String.format("SELECT * FROM USERS WHERE name = '%s' AND password = '%s'", name, password);
          int userNum = esql.executeQuery(query);
-         // print the user status
-         String userType = esql.executeQueryAndReturnResult(query).get(0).get(5);
+         List<List<String>> result = esql.executeQueryAndReturnResult(query);
+         // Get the user type
+         String userType = result.get(0).get(5);
+         // Save the user id
+         esql.currentUser = result.get(0).get(0);
          if (userNum > 0)
             return userType;
          return null;
@@ -500,6 +505,7 @@ public class Amazon {
    }
 
    public static void updateProduct(Amazon esql) {
+
    }
 
    public static void viewRecentUpdates(Amazon esql) {
