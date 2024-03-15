@@ -679,6 +679,69 @@ public class Amazon {
    }
 
    public static void placeProductSupplyRequests(Amazon esql) {
+      try {
+         // Get Store ID from the user
+         String store_id = getStoreID(esql);
+
+         String valid_manager = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
+         List<List<String>> result = esql.executeQueryAndReturnResult(valid_manager);
+         if (!result.get(0).get(0).equals(esql.currentUser)) {
+            System.out.println("You are not the manager of this store. Try again!");
+            return;
+         }
+
+         // Get product name from the user
+         System.out.print("\tEnter product name: ");
+         String product_name = in.readLine();
+
+         // Check if the product exists in the store
+         String product_query = String.format("SELECT * FROM Product WHERE storeid = %s AND productname = '%s'",
+               store_id,
+               product_name);
+         if (esql.executeQuery(product_query) == 0) {
+            System.out.println("Product does not exist in the store.");
+            return;
+         }
+
+         // Get quantity
+         System.out.print("\tEnter quantity: ");
+         String quantity = in.readLine();
+         if (!isInteger(quantity)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         // Get the warehouse id
+         System.out.print("\tEnter warehouse id: ");
+         String warehouse_id = in.readLine();
+         if (!isInteger(warehouse_id)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         // Check if the warehouse exists
+         String warehouse_query = String.format("SELECT * FROM Warehouse WHERE warehouseid = %s", warehouse_id);
+         if (esql.executeQuery(warehouse_query) == 0) {
+            System.out.println("Warehouse does not exist. Try again!");
+            return;
+         }
+
+         // Insert into ProductSupplyRequest
+         String insert_query = String.format(
+               "INSERT INTO ProductSupplyRequests (managerid, storeid, productname, unitsrequested, warehouseid) VALUES (%s, %s, '%s', %s, %s)",
+               esql.currentUser, store_id, product_name, quantity, warehouse_id);
+         esql.executeUpdate(insert_query);
+         System.out.println("Product supply request successfully placed!");
+
+         // Update the product
+         String update_query = String.format(
+               "UPDATE Product SET numberofunits = numberofunits + %s WHERE storeid = %s AND productname = '%s'",
+               quantity, store_id, product_name);
+         esql.executeUpdate(update_query);
+
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
 }// end Amazon
