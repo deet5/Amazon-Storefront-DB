@@ -637,6 +637,24 @@ public class Amazon {
    }
 
    public static void viewPopularProducts(Amazon esql) {
+      try {
+         // Get Store ID from the user
+         String store_id = getStoreID(esql);
+
+         String valid_manager = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
+         List<List<String>> result = esql.executeQueryAndReturnResult(valid_manager);
+         if (!result.get(0).get(0).equals(esql.currentUser)) {
+            System.out.println("You are not the manager of this store. Try again!");
+            return;
+         }
+
+         String query = String.format(
+               "SELECT productname, SUM(unitsordered) AS total_units_sold FROM Orders WHERE storeid = %s GROUP BY productname ORDER BY total_units_sold DESC LIMIT 5",
+               store_id);
+         esql.executeQueryAndPrintResult(query);
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void viewPopularCustomers(Amazon esql) {
