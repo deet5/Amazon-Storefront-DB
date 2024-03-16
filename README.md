@@ -130,13 +130,47 @@ This query is used by `Admin` to update user information.
 ### Extra credit
 
 #### Triggers
+```
+DROP TRIGGER IF EXISTS trg_product_update ON Product;
 
-#### Indexes
+CREATE OR REPLACE LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION product_update()
+RETURNS "trigger" AS 
+$BODY$
+BEGIN
+  INSERT INTO ProductUpdates (storeid, productname, updatedon, managerid)
+  VALUES (NEW.storeid, NEW.productname, now(), (SELECT managerid FROM Store WHERE storeid = NEW.storeid));
+  RETURN NEW;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE;
+
+CREATE TRIGGER trg_product_update
+AFTER UPDATE ON Product
+FOR EACH ROW EXECUTE PROCEDURE product_update();
+```
+This trigger adds information to the `ProductUpdates` after a `Manager` updates the product. 
+
+#### Indices
+```
+CREATE INDEX storeID_on_products ON product USING btree (storeid);
+```
+This index improves the query on `Product`.
+> BEFORE insert image here
+> AFTER insert image here
+
+```
+CREATE INDEX storeID_on_orders ON orders USING btree (storeid);
+```
+This index improves the query on `Orders`.
+> BEFORE insert image here
+> AFTER insert image here
 
 ## Problems/Findings
 
 - Some user types in the USER schema have extra whispaces. So when we compare type `Manager` with the string "Manager" it returns `false`. We solved it by trimming the return type from the schema.
-- There was no type checking for user input. So we implemented `isInteger()` and `isDouble()` functions to check if the user inputs correct values.  
+- There was no type checking for user input. So we implemented `isInteger()` and `isDouble()` functions to check if the user inputs correct values.
+- The trigger to add information product update assumes that only `Manager`s are responsible for product updates. So if `Admin` makes any changes to the product, their ID will not be in the `managerid` column.
 
 ## Contributions
 
@@ -148,6 +182,8 @@ This query is used by `Admin` to update user information.
 - Added placeProductSupplyRequests for Managers
 - Added searchUserbyName for Admins
 - Added updateUser for Admins
+- Added indices for Products and Orders
+- Added trigger for product updates
 
 **Adlai Morales-Bravo**
 
