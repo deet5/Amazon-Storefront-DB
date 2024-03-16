@@ -115,20 +115,39 @@ WHERE warehouseid = <WarehouseID>;
 ```
 This query is used to check if the given warehouse exists.
 
-#### 
+#### Add a new record to the product supply request.
 ```
 INSERT INTO ProductSupplyRequests (managerid, storeid, productname, unitsrequested, warehouseid) VALUES (<ManagerID>, <StoreID>, <ProductName>, <UnitsRequested>, <WarehouseID>);
 ```
+This query is sused to add the product supply request from the `Manager`.
 
+#### Change user information. 
+```
+UPDATE Users SET name = <UserName>, password = <Password>, latitude = <Latitude>, longitude = <Longitude>, type = <UserType> WHERE userid = <UserID>;
+```
+This query is used by `Admin` to update user information.
 
-> Include screenshots and/or code snippets for each query. In addition, explain how you implemented each query and what purpose it fulfills. (no more than 1-2 sentences per query)
+### Extra credit
 
-> If you did any extra credit, provide screenshots and/or code snippets. Explain how you implemented the extra credit. (triggers/stored procedures, performance tuning, etc)	
+#### Triggers
+
+#### Indexes
 
 ## Problems/Findings
 
-> Include problems/findings you encountered while working on the project (1-2 paragraphs max)
+- Some user types in the USER schema have extra whispaces. So when we compare type `Manager` with the string "Manager" it returns `false`. We solved it by trimming the return type from the schema.
+- There was no type checking for user input. So we implemented `isInteger()` and `isDouble()` functions to check if the user inputs correct values.  
 
 ## Contributions
 
-> Include descriptions of what each member worked on (1 paragraph max)
+**Denis Melnikov**
+- Added Update Product for Managers and Admins
+- Added ViewRecentUpdates for Managers
+- Added viewPopularProducts for Managers
+- Added viewPopularCustomers for Managers
+- Added placeProductSupplyRequests for Managers
+- Added searchUserbyName for Admins
+- Added updateUser for Admins
+
+**Adlai Morales-Bravo**
+
