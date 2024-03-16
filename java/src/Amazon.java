@@ -414,7 +414,7 @@ public class Amazon {
                   System.out.println("9. Log out");
                   switch (readChoice()) {
                      case 1:
-                        searchUserbyName(esql);
+                        searchUserByName(esql);
                         break;
                      case 2:
                         updateUser(esql);
@@ -739,7 +739,7 @@ public class Amazon {
       }
    }
 
-   public static void searchUserbyName(Amazon esql) {
+   public static void searchUserByName(Amazon esql) {
       try {
          System.out.print("\tEnter user name: ");
          String user_name = in.readLine();
@@ -757,5 +757,57 @@ public class Amazon {
    }
 
    public static void updateUser(Amazon esql) {
+      try {
+         System.out.print("\tEnter user id: ");
+         String user_id = in.readLine();
+         if (!isInteger(user_id)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         String query = String.format("SELECT * FROM Users WHERE userid = %s", user_id);
+         if (esql.executeQuery(query) == 0) {
+            System.out.println("User does not exist.");
+            return;
+         }
+
+         System.out.print("\tEnter new name: ");
+         String new_name = in.readLine();
+         System.out.print("\tEnter new password: ");
+         String new_password = in.readLine();
+         System.out.print("\tEnter new latitude: ");
+         String new_latitude = in.readLine();
+         System.out.print("\tEnter new longitude: ");
+         String new_longitude = in.readLine();
+
+         String new_type = null;
+         System.out.println("Choose user type:");
+         System.out.println("1. Customer");
+         System.out.println("2. Manager");
+         System.out.println("3. Admin");
+         switch (readChoice()) {
+            case 1:
+               new_type = "Customer";
+               break;
+            case 2:
+               new_type = "Manager";
+               break;
+            case 3:
+               new_type = "Admin";
+               break;
+            default:
+               System.out.println("Unrecognized choice!");
+               return;
+         }
+
+         String update_query = String.format(
+               "UPDATE Users SET name = '%s', password = '%s', latitude = %s, longitude = %s, type = '%s' WHERE userid = %s",
+               new_name, new_password, new_latitude, new_longitude, new_type, user_id);
+         esql.executeUpdate(update_query);
+         System.out.println("User successfully updated!");
+
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 }// end Amazon
