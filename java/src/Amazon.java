@@ -740,7 +740,20 @@ public class Amazon {
    }
 
    public static void searchUserbyName(Amazon esql) {
+      try {
+         System.out.print("\tEnter user name: ");
+         String user_name = in.readLine();
 
+         String query = String.format("SELECT * FROM Users WHERE name = '%s'", user_name);
+         if (esql.executeQuery(query) == 0) {
+            System.out.println("User does not exist.");
+            return;
+         }
+         esql.executeQueryAndPrintResult(query);
+
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void updateUser(Amazon esql) {
