@@ -406,31 +406,22 @@ public class Amazon {
                while (usermenu) {
                   System.out.println("MAIN MENU");
                   System.out.println("---------");
-                  System.out.println("1. View User by ID");
-                  System.out.println("2. View 5 recent Product Updates Info");
-                  System.out.println("3. View 5 Popular Items");
-                  System.out.println("4. View 5 Popular Customers");
-                  System.out.println("5. Place Product Supply Request to Warehouse");
+                  System.out.println("1. Search User by User Name");
+                  System.out.println("2. Update User");
+                  System.out.println("3. Update Product");
 
                   System.out.println(".........................");
                   System.out.println("9. Log out");
                   switch (readChoice()) {
                      case 1:
-
+                        searchUserbyName(esql);
                         break;
                      case 2:
-
+                        updateUser(esql);
                         break;
                      case 3:
-
+                        updateProduct(esql);
                         break;
-                     case 4:
-
-                        break;
-                     case 5:
-
-                        break;
-
                      case 9:
                         usermenu = false;
                         break;
@@ -559,14 +550,18 @@ public class Amazon {
          // Get Store ID from the user
          String store_id = getStoreID(esql);
 
-         // Check if the user is the manager of the store
-         String storeID_query = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
-         List<List<String>> result = esql.executeQueryAndReturnResult(storeID_query);
-         if (!result.get(0).get(0).equals(esql.currentUser)) {
-            System.out.println("You are not the manager of this store. Try again!");
-            return;
-         }
+         String ifManager = String.format("SELECT type FROM Users WHERE userid = %s", esql.currentUser);
+         List<List<String>> user_result = esql.executeQueryAndReturnResult(ifManager);
+         if (user_result.get(0).get(0).trim().equals("Manager")) {
 
+            // Check if the user is the manager of the store
+            String storeID_query = String.format("SELECT managerid FROM Store WHERE storeid = %s", store_id);
+            List<List<String>> result = esql.executeQueryAndReturnResult(storeID_query);
+            if (!result.get(0).get(0).equals(esql.currentUser)) {
+               System.out.println("You are not the manager of this store. Try again!");
+               return;
+            }
+         }
          // Get product name from the user
          System.out.print("\tEnter product name: ");
          String product_name = in.readLine();
@@ -744,4 +739,10 @@ public class Amazon {
       }
    }
 
+   public static void searchUserbyName(Amazon esql) {
+
+   }
+
+   public static void updateUser(Amazon esql) {
+   }
 }// end Amazon
