@@ -315,7 +315,7 @@ public class Amazon {
             System.out.println("1. Create user");
             System.out.println("2. Log in");
             System.out.println("9. < EXIT");
-            String authorisedUser = null;
+            String authorisedUser = "";
             switch (readChoice()) {
                case 1:
                   CreateUser(esql);
@@ -541,7 +541,7 @@ public class Amazon {
 
          // Get current User's latitude and longitude
          String user_query = String.format("SELECT latitude, longitude FROM Users WHERE userid = %s", esql.currentUser);
-         List<List<String>> user= esql.executeQueryAndReturnResult(user_query);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_query);
          double user_latitude = Double.parseDouble(user.get(0).get(0));
          double user_longitude = Double.parseDouble(user.get(0).get(1));
 
@@ -554,7 +554,7 @@ public class Amazon {
             String store_id = record.get(0);
             double store_latitude = Double.parseDouble(record.get(1));
             double store_longitude = Double.parseDouble(record.get(2));
-            
+
             // check distance from from user
             if (30.0 <= calculateDistance(user_latitude, user_longitude, store_latitude, store_longitude)) {
                // add id to a set
@@ -570,7 +570,7 @@ public class Amazon {
             }
 
             in_stores_set += valid_store.get(i);
-            
+
             if (i == valid_store.size() - 1) {
                in_stores_set += ")";
                continue;
@@ -590,10 +590,11 @@ public class Amazon {
 
    public static void viewProducts(Amazon esql) {
       try {
-         // Get the Store 
+         // Get the Store
          String store_id = getStoreID(esql);
-         // Get products from the Store with storeid 
-         String store_query = String.format("SELECT productName, numberOfUnits, pricePerUnit FROM Product WHERE storeID = %s", store_id);
+         // Get products from the Store with storeid
+         String store_query = String
+               .format("SELECT productName, numberOfUnits, pricePerUnit FROM Product WHERE storeID = %s", store_id);
          esql.executeQueryAndPrintResult(store_query);
       } catch (Exception e) {
          System.err.println(e.getMessage());
@@ -609,12 +610,12 @@ public class Amazon {
          double store_latitude = Double.parseDouble(store.get(0).get(0));
          double store_longitude = Double.parseDouble(store.get(0).get(1));
 
-         // Get the current user's longitude and latitude 
+         // Get the current user's longitude and latitude
          String user_query = String.format("SELECT latitude, longitude FROM Users WHERE userid = %s", esql.currentUser);
-         List<List<String>> user= esql.executeQueryAndReturnResult(user_query);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_query);
          double user_latitude = Double.parseDouble(user.get(0).get(0));
          double user_longitude = Double.parseDouble(user.get(0).get(1));
-         
+
          // Check if the store is in the valid range of the user
          if (30.0 > calculateDistance(user_latitude, user_longitude, store_latitude, store_longitude)) {
             System.out.println("Store not within 30 mile raidus of your location.");
@@ -625,15 +626,15 @@ public class Amazon {
          System.out.print("\tEnter product name: ");
          String product_name = in.readLine();
 
-         // Get product record from DB 
+         // Get product record from DB
          String product_query = String.format("SELECT * FROM Product WHERE storeid = %s AND productname = '%s'",
                store_id,
                product_name);
 
          List<List<String>> product = esql.executeQueryAndReturnResult(product_query);
-         
+
          // Check if the product exists in the store
-         if(product.size() == 0) {
+         if (product.size() == 0) {
             System.out.println("Product does not exist in the store.");
             return;
          }
@@ -656,7 +657,7 @@ public class Amazon {
             System.out.println(String.format("Not enough units of %s to complete your order.", product_name));
             return;
          }
-        
+
          // Update Product table for the new units amount based of the current order
          Integer new_quantity = Integer.parseInt(available_product_units) - Integer.parseInt(number_of_units);
 
@@ -680,7 +681,9 @@ public class Amazon {
    public static void viewRecentOrders(Amazon esql) {
       try {
          // Get the five most recent orders for the current user
-         String orders_query = String.format("SELECT productName, unitsOrdered, orderTime FROM Orders WHERE customerID = %s ORDER BY orderTime DESC LIMIT 5", esql.currentUser);
+         String orders_query = String.format(
+               "SELECT productName, unitsOrdered, orderTime FROM Orders WHERE customerID = %s ORDER BY orderTime DESC LIMIT 5",
+               esql.currentUser);
          esql.executeQueryAndPrintResult(orders_query);
       } catch (Exception e) {
          System.err.println(e.getMessage());
