@@ -119,7 +119,7 @@ public class Amazon {
    }
 
    // Method to calculate euclidean distance between two latitude, longitude pairs.
-   public double calculateDistance(double lat1, double long1, double lat2, double long2) {
+   public static double calculateDistance(double lat1, double long1, double lat2, double long2) {
       double t1 = (lat1 - lat2) * (lat1 - lat2);
       double t2 = (long1 - long2) * (long1 - long2);
       return Math.sqrt(t1 + t2);
@@ -534,15 +534,157 @@ public class Amazon {
    // Rest of the functions definition go in here
 
    public static void viewStores(Amazon esql) {
+      try {
+         // Get all stores
+         String store_query = "SELECT storeID, latitude, longitude FROM Store";
+         List<List<String>> stores = esql.executeQueryAndReturnResult(store_query);
+
+         // Get current User's latitude and longitude
+         String user_query = String.format("SELECT latitude, longitude FROM Users WHERE userid = %s", esql.currentUser);
+         List<List<String>> user= esql.executeQueryAndReturnResult(user_query);
+         double user_latitude = Double.parseDouble(user.get(0).get(0));
+         double user_longitude = Double.parseDouble(user.get(0).get(1));
+
+         // Stores within 30 miles
+         List<String> valid_store = new ArrayList<String>();
+
+         // iterate through stores
+         for (List<String> record : stores) {
+            // get lattidue and longitude from record
+            String store_id = record.get(0);
+            double store_latitude = Double.parseDouble(record.get(1));
+            double store_longitude = Double.parseDouble(record.get(2));
+            
+            // check distance from from user
+            if (30.0 <= calculateDistance(user_latitude, user_longitude, store_latitude, store_longitude)) {
+               // add id to a set
+               valid_store.add(store_id);
+            }
+         }
+
+         String in_stores_set = "";
+
+         for (int i = 0; i < valid_store.size(); i++) {
+            if (i == 0) {
+               in_stores_set += "(";
+            }
+
+            in_stores_set += valid_store.get(i);
+            
+            if (i == valid_store.size() - 1) {
+               in_stores_set += ")";
+               continue;
+            }
+
+            in_stores_set += ", ";
+         }
+
+         // create/exe query for store ids in the set
+         String valid_stores_query = String.format("SELECT storeID FROM Store WHERE storeID IN %s", in_stores_set);
+         esql.executeQueryAndPrintResult(valid_stores_query);
+
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void viewProducts(Amazon esql) {
+      try {
+         // Get the Store 
+         String store_id = getStoreID(esql);
+         // Get products from the Store with storeid 
+         String store_query = String.format("SELECT productName, numberOfUnits, pricePerUnit FROM Product WHERE storeID = %s", store_id);
+         esql.executeQueryAndPrintResult(store_query);
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void placeOrder(Amazon esql) {
+      try {
+         // Get the Store's longitude and latitude
+         String store_id = getStoreID(esql);
+         String store_query = String.format("SELECT latitude, longitude FROM Store WHERE storeid = %s", store_id);
+         List<List<String>> store = esql.executeQueryAndReturnResult(store_query);
+         double store_latitude = Double.parseDouble(store.get(0).get(0));
+         double store_longitude = Double.parseDouble(store.get(0).get(1));
+
+         // Get the current user's longitude and latitude 
+         String user_query = String.format("SELECT latitude, longitude FROM Users WHERE userid = %s", esql.currentUser);
+         List<List<String>> user= esql.executeQueryAndReturnResult(user_query);
+         double user_latitude = Double.parseDouble(user.get(0).get(0));
+         double user_longitude = Double.parseDouble(user.get(0).get(1));
+         
+         // Check if the store is in the valid range of the user
+         if (30.0 > calculateDistance(user_latitude, user_longitude, store_latitude, store_longitude)) {
+            System.out.println("Store not within 30 mile raidus of your location.");
+            return;
+         }
+
+         // Get user input for product
+         System.out.print("\tEnter product name: ");
+         String product_name = in.readLine();
+
+         // Get product record from DB 
+         String product_query = String.format("SELECT * FROM Product WHERE storeid = %s AND productname = '%s'",
+               store_id,
+               product_name);
+
+         List<List<String>> product = esql.executeQueryAndReturnResult(product_query);
+         
+         // Check if the product exists in the store
+         if(product.size() == 0) {
+            System.out.println("Product does not exist in the store.");
+            return;
+         }
+
+         // Get available number of units of product
+         String available_product_units = product.get(0).get(2);
+
+         // Get user input for order amount of product
+         System.out.print("\tEnter number of units: ");
+         String number_of_units = in.readLine();
+
+         // Check for valid entry of number of units
+         if (!isInteger(number_of_units)) {
+            System.out.println("Invalid input. Try again!");
+            return;
+         }
+
+         // Check if enough units of products exist to satisfy order
+         if (Integer.parseInt(number_of_units) > Integer.parseInt(available_product_units)) {
+            System.out.println(String.format("Not enough units of %s to complete your order.", product_name));
+            return;
+         }
+        
+         // Update Product table for the new units amount based of the current order
+         Integer new_quantity = Integer.parseInt(available_product_units) - Integer.parseInt(number_of_units);
+
+         String update_query = String.format(
+               "UPDATE Product SET numberofunits = %s WHERE storeid = %s AND productname = '%s'",
+               Integer.toString(new_quantity), store_id, product_name);
+         esql.executeUpdate(update_query);
+
+         // Insert new order into DB
+         String insert_query = String.format(
+               "INSERT INTO Orders (customerid, storeid, productname, unitsOrdered, orderTime) VALUES (%s, %s, '%s', %s, CURRENT_DATE)",
+               esql.currentUser, store_id, product_name, Integer.parseInt(number_of_units));
+         esql.executeUpdate(insert_query);
+
+         System.out.println("Order placed successfully!");
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void viewRecentOrders(Amazon esql) {
+      try {
+         // Get the five most recent orders for the current user
+         String orders_query = String.format("SELECT productName, unitsOrdered, orderTime FROM Orders WHERE customerID = %s ORDER BY orderTime DESC LIMIT 5", esql.currentUser);
+         esql.executeQueryAndPrintResult(orders_query);
+      } catch (Exception e) {
+         System.err.println(e.getMessage());
+      }
    }
 
    public static void updateProduct(Amazon esql) {
