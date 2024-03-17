@@ -6,7 +6,7 @@ Group #65
 
 | Name | NetID |
 |---|---|
-| [Adlai Morales-Bravo](https://github.com/AdlaiMB) | **amora190** |
+| [Adlai Morales-Bravo](https://github.com/AdlaiMB) | **amora180** |
 | [Denis Melnikov](https://github.com/deet5) | **dmeln003** | 
 
 ## Implementation Description
@@ -127,49 +127,49 @@ UPDATE Users SET name = <UserName>, password = <Password>, latitude = <Latitude>
 ```
 This query is used by `Admin` to update user information.
 
-### Return all store's latitude and longitude.
+#### Return all store's latitude and longitude.
 ```
 SELECT storeID, latitude, longitude FROM Store
 ```
 This is query is used to get all store's latitude and longitude for checking distance to customer.
 
-### Return user's latitude and longitude given user ID.
+#### Return user's latitude and longitude given user ID.
 ```
 SELECT latitude, longitude FROM Users WHERE userid = <UserID>
 ```
 This is query is used to get the users latitude and longitude for checking store distance.
 
-### Return all store's givin store IDs.
+#### Return all store's givin store IDs.
 ```
 SELECT storeID FROM Store WHERE storeID IN <StoreIDs> 
 ```
 This query is used to check if stores are within a set of store IDs with a valid distance to customer. 
 
-### Return products given store ID.
+#### Return products given store ID.
 ```
 SELECT productName, numberOfUnits, pricePerUnit FROM Product WHERE storeID = <StoreId>
 ```
 This query if used to return all products within a store.
 
-### Return store latitude and longitdue given store ID.
+#### Return store latitude and longitdue given store ID.
 ```
 SELECT latitude, longitude FROM Store WHERE storeid = <StoreID>
 ```
 This query is used to get a store to check its distance to a customer. 
 
-### Update product number of units in a given store.
+#### Update product number of units in a given store.
 ```
 UPDATE Product SET numberofunits = <NumberofUnits> WHERE storeid = <StoreID> AND productname = <ProductName>
 ```
 This query is used to update a prouduct from a order from a `Customer`.
 
-### Add a new record to the order.
+#### Add a new record to the order.
 ```
 INSERT INTO Orders (customerid, storeid, productname, unitsOrdered, orderTime) VALUES (<CustomerID>, <StoreID>, <ProductName>, <UnitsOrdered>, <CurrentDate>)
 ```
 This query is to insert a new order from a `Customer`
 
-### Return the last 5 orders given customer ID.
+#### Return the last 5 orders given customer ID.
 ```
 SELECT productName, unitsOrdered, orderTime FROM Orders WHERE customerID = <CustomerID> ORDER BY orderTime DESC LIMIT 5
 ```
@@ -199,6 +199,29 @@ FOR EACH ROW EXECUTE PROCEDURE product_update();
 ```
 This trigger adds information to the `ProductUpdates` after a `Manager` updates the product. 
 
+```
+DROP TRIGGER IF EXISTS trg_new_order ON Orders;
+
+CREATE OR REPLACE LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION product_units_update()
+RETURNS "trigger" AS 
+$BODY$
+DECLARE 
+  oldUnits  integer;
+BEGIN
+  oldUnits := (SELECT numberOfUnits FROM Product WHERE storeID = NEW.storeID AND productName = NEW.productName);
+  UPDATE Product SET numberOfUnits = oldUnits - NEW.unitsOrdered WHERE storeID = NEW.storeID AND productname = NEW.productName;
+  RETURN NEW;
+END;
+$BODY$
+LANGUAGE plpgsql VOLATILE;
+
+CREATE TRIGGER trg_new_order
+AFTER INSERT ON Orders
+FOR EACH ROW EXECUTE PROCEDURE product_units_update();
+```
+This trigger updates information on the `Product` after a `Customer` places an order.
+
 #### Indices
 ```
 CREATE INDEX storeID_on_products ON product USING btree (storeid);
@@ -217,6 +240,15 @@ This index improves the query on `Orders`.
 ![](images/orders-before.png)
 
 ![](images/orders-after.png)
+
+```
+CREATE INDEX customerID_on_orders ON orders USING btree (customerid);
+```
+This index improves the query on `Orders`.
+
+![](images/orders-before-2.png)
+
+![](images/orders-after-2.png)
 
 ## Problems/Findings
 
@@ -242,3 +274,5 @@ This index improves the query on `Orders`.
 - Added viewProducts for Customers
 - Added placeOrders for Customers
 - Added viewRecentOrders for Customers
+- Added index for Orders
+- Added trigger for Orders
