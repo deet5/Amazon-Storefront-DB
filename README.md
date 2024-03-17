@@ -13,7 +13,7 @@ Group #65
 
 You can create a new account using `Create user`. By default every new user has the type `Customer` which can later be modified by `Admin`. When the account is created you can log in using `Log in` option. Depending on the user type you have different menu options. For example, if your user type is `Customer`, you can view stores within 30 miles, view product list, place an order or view 5 recent orders. Here is the interface flow to better understand what options are available:
 
-> insert image here
+![](images/interface-flow.png)
 
 ### Queries
 
@@ -156,15 +156,19 @@ This trigger adds information to the `ProductUpdates` after a `Manager` updates 
 CREATE INDEX storeID_on_products ON product USING btree (storeid);
 ```
 This index improves the query on `Product`.
-> BEFORE insert image here
-> AFTER insert image here
+
+![](images/product-before.png)
+
+![](images/product-after.png)
 
 ```
 CREATE INDEX storeID_on_orders ON orders USING btree (storeid);
 ```
 This index improves the query on `Orders`.
-> BEFORE insert image here
-> AFTER insert image here
+
+![](images/orders-before.png)
+
+![](images/orders-after.png)
 
 ## Problems/Findings
 
