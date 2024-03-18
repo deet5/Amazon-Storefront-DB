@@ -744,11 +744,12 @@ public class Amazon {
          esql.executeUpdate(update_query);
          System.out.println("Product successfully updated!");
 
-         // Insert into ProductUpdates
-         String insert_query = String.format(
-               "INSERT INTO ProductUpdates (managerID, storeid, productname, updatedOn) VALUES (%s, %s, '%s', CURRENT_DATE)",
-               esql.currentUser, store_id, product_name);
-         esql.executeUpdate(insert_query);
+         // Insert into ProductUpdates -- TRIGGER
+         // String insert_query = String.format(
+         // "INSERT INTO ProductUpdates (managerID, storeid, productname, updatedOn)
+         // VALUES (%s, %s, '%s', CURRENT_DATE)",
+         // esql.currentUser, store_id, product_name);
+         // esql.executeUpdate(insert_query);
 
       } catch (Exception e) {
          System.err.println(e.getMessage());
