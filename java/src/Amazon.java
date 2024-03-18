@@ -658,13 +658,13 @@ public class Amazon {
             return;
          }
 
-         // Update Product table for the new units amount based of the current order
-         Integer new_quantity = Integer.parseInt(available_product_units) - Integer.parseInt(number_of_units);
+         // Update Product table for the new units amount based of the current order -- TRIGGER
+         //Integer new_quantity = Integer.parseInt(available_product_units) - Integer.parseInt(number_of_units);
 
-         String update_query = String.format(
-               "UPDATE Product SET numberofunits = %s WHERE storeid = %s AND productname = '%s'",
-               Integer.toString(new_quantity), store_id, product_name);
-         esql.executeUpdate(update_query);
+         //String update_query = String.format(
+         //      "UPDATE Product SET numberofunits = %s WHERE storeid = %s AND productname = '%s'",
+         //      Integer.toString(new_quantity), store_id, product_name);
+         //esql.executeUpdate(update_query);
 
          // Insert new order into DB
          String insert_query = String.format(
