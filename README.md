@@ -1,13 +1,11 @@
-# CS 166 Project Report
+## What is Amazon Storefront DB?
+
+This is a group project for Database System Managment class. It is a database-driven application for managing user accounts, stores, products, and orders. It allows users to create accounts, log in, and perform various actions based on their user type, such as viewing stores, products, and placing orders. The system includes SQL queries for data retrieval and manipulation, as well as triggers and indices for optimizing database operations.
 
 ## Group Information
 
-Group #65
-
-| Name | NetID |
-|---|---|
-| [Adlai Morales-Bravo](https://github.com/AdlaiMB) | **amora180** |
-| [Denis Melnikov](https://github.com/deet5) | **dmeln003** | 
+[Adlai Morales-Bravo](https://github.com/AdlaiMB) 
+[Denis Melnikov](https://github.com/deet5)
 
 ## Implementation Description
 
@@ -255,24 +253,3 @@ This index improves the query on `Orders`.
 - Some user types in the USER schema have extra whispaces. So when we compare type `Manager` with the string "Manager" it returns `false`. We solved it by trimming the return type from the schema.
 - There was no type checking for user input. So we implemented `isInteger()` and `isDouble()` functions to check if the user inputs correct values.
 - The trigger to add information product update assumes that only `Manager`s are responsible for product updates. So if `Admin` makes any changes to the product, their ID will not be in the `managerid` column.
-
-## Contributions
-
-**Denis Melnikov**
-- Added Update Product for Managers and Admins
-- Added ViewRecentUpdates for Managers
-- Added viewPopularProducts for Managers
-- Added viewPopularCustomers for Managers
-- Added placeProductSupplyRequests for Managers
-- Added searchUserbyName for Admins
-- Added updateUser for Admins
-- Added indices for Products and Orders
-- Added trigger for product updates
-
-**Adlai Morales-Bravo**
-- Added viewStores for Customers
-- Added viewProducts for Customers
-- Added placeOrders for Customers
-- Added viewRecentOrders for Customers
-- Added index for Orders
-- Added trigger for Orders
