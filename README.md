@@ -5,6 +5,7 @@ This is a group project for Database System Managment class. It is a database-dr
 ## Group Information
 
 [Adlai Morales-Bravo](https://github.com/AdlaiMB) 
+
 [Denis Melnikov](https://github.com/deet5)
 
 ## Implementation Description
